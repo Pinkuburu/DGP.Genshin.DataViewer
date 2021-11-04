@@ -1,0 +1,128 @@
+﻿<UserControl x:Class="DGP.Genshin.DataViewer.Views.ExcelSplitView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DGP.Genshin.DataViewer.Views"
+             mc:Ignorable="d" 
+             xmlns:ui="http://schemas.modernwpf.com/2019" 
+             xmlns:controls="clr-namespace:DGP.Genshin.DataViewer.Controls" 
+             xmlns:converter="clr-namespace:DGP.Genshin.DataViewer.Helpers.Converters"
+             d:DesignHeight="200" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converter:VisibilityToBooleanConverter x:Key="VisibilityToBooleanConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <ui:SplitView OpenPaneLength="320" IsPaneOpen="{Binding IsPaneOpen,Mode=TwoWay}" LightDismissOverlayMode="On">
+            <ui:SplitView.Pane>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <ui:AutoSuggestBox PlaceholderText="按标题筛选" QueryIcon="Find" Margin="12" TextChanged="OnSearchExcelList"/>
+                    <ui:ListView Grid.Row="1" ItemsSource="{Binding ExcelConfigDataCollection}" DisplayMemberPath="FileName" SelectedItem="{Binding SelectedFile,Mode=TwoWay}"/>
+                </Grid>
+            </ui:SplitView.Pane>
+            <TabControl>
+                <ui:TabControlHelper.TabStripHeader>
+                    <Button Style="{StaticResource PaneToggleButtonStyle}" Click="PaneStateChangeRequested"/>
+                </ui:TabControlHelper.TabStripHeader>
+                <ui:TabControlHelper.TabStripFooter>
+                    <ui:CommandBar Background="Transparent">
+                        <ui:AppBarElementContainer>
+                            <ui:AutoSuggestBox Width="240" PlaceholderText="在映射表中查找" QueryIcon="Find" Margin="0,4,0,0" Height="32" TextChanged="OnSearchTextMap">
+                                <ui:AutoSuggestBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Margin="0,6,0,2" Text="{Binding Key}" Style="{StaticResource CaptionTextBlockStyle}"/>
+                                            <TextBlock Margin="0,0,0,6" Text="{Binding Value}" Style="{StaticResource BodyTextBlockStyle}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ui:AutoSuggestBox.ItemTemplate>
+                            </ui:AutoSuggestBox>
+                        </ui:AppBarElementContainer>
+                        <ui:AppBarSeparator/>
+                        <ui:AppBarElementContainer>
+                            <ComboBox Margin="0,4,0,0" ui:ControlHelper.PlaceholderText="映射语言" ItemsSource="{Binding TextMapCollection}" SelectedItem="{Binding SelectedTextMap,Mode=TwoWay}"/>
+                        </ui:AppBarElementContainer>
+                        <ui:CommandBar.SecondaryCommands>
+                            <ui:AppBarButton Label="重新选择文件夹" Click="OpenFolderRequested">
+                                <ui:AppBarButton.Icon>
+                                    <ui:FontIcon Glyph="&#xED25;"/>
+                                </ui:AppBarButton.Icon>
+                            </ui:AppBarButton>
+                        </ui:CommandBar.SecondaryCommands>
+                    </ui:CommandBar>
+                </ui:TabControlHelper.TabStripFooter>
+                <TabItem Header="完整表格视图">
+                    <ui:TabItemHelper.Icon>
+                        <ui:FontIcon Glyph="&#xF0E2;"/>
+                    </ui:TabItemHelper.Icon>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <controls:JsonDataGrid 
+                            CanUserSortColumns="True" 
+                            ColumnWidth="SizeToCells" 
+                            x:Name="PresentDataGrid" 
+                            Grid.Column="1" 
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="True"
+                            CurrentCellChanged="OnCurrentCellChanged"
+                            IsReadOnly="True">
+                        </controls:JsonDataGrid>
+                        <ui:CommandBar Grid.Row="1">
+                            <ui:CommandBar.Content>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal" Background="Transparent" Visibility="{Binding BackgroundIndicatorVisibility}">
+                                        <Border Margin="12,0,-4,0" VerticalAlignment="Center" Padding="4" Background="Transparent" ToolTip="正在后台进行操作">
+                                            <ui:FontIcon TextElement.Foreground="Red" SnapsToDevicePixels="True" Glyph="&#xE946;" />
+                                        </Border>
+                                        <ui:AppBarSeparator/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="TitleText" Style="{StaticResource BodyTextBlockStyle}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                    <ui:AppBarSeparator/>
+                                    <TextBlock x:Name="MemoryUsageText" Style="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ui:CommandBar.Content>
+                            <ui:AppBarButton Label="可读信息">
+                                <ui:AppBarButton.Icon>
+                                    <ui:FontIcon Glyph="&#xE736;"/>
+                                </ui:AppBarButton.Icon>
+                                <ui:AppBarButton.Flyout>
+                                    <ui:Flyout>
+                                        <TextBlock MaxWidth="320" Text="{Binding Readable}" TextWrapping="Wrap"/>
+                                    </ui:Flyout>
+                                </ui:AppBarButton.Flyout>
+                            </ui:AppBarButton>
+                            <ui:AppBarButton Label="筛选列" Icon="Filter">
+                                <ui:AppBarButton.Flyout>
+                                    <ui:Flyout>
+                                        <ui:ListView x:Name="VisibilityList" IsSelectionEnabled="False" ItemsSource="{Binding Columns,Mode=OneWay}">
+                                            <ui:ListView.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type DataGridColumn}">
+                                                    <CheckBox Content="{Binding Header}" IsChecked="{Binding Visibility,Converter={StaticResource VisibilityToBooleanConverter},Mode=TwoWay}" />
+                                                </DataTemplate>
+                                            </ui:ListView.ItemTemplate>
+                                        </ui:ListView>
+                                    </ui:Flyout>
+                                </ui:AppBarButton.Flyout>
+                            </ui:AppBarButton>
+                        </ui:CommandBar>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="原始Json视图">
+                    <ui:TabItemHelper.Icon>
+                        <ui:FontIcon Glyph="&#xE943;"/>
+                    </ui:TabItemHelper.Icon>
+                    <ui:ScrollViewerEx>
+                        <TextBlock Text="{Binding PresentDataString}"/>
+                    </ui:ScrollViewerEx>
+                </TabItem>
+            </TabControl>
+        </ui:SplitView>
+    </Grid>
+</UserControl>
