@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -77,7 +76,7 @@ namespace DGP.Genshin.DataViewer.Views
             }
             else
             {
-                if(ExcelSplitView is null)
+                if (ExcelSplitView is null)
                 {
                     return;
                 }
@@ -90,7 +89,8 @@ namespace DGP.Genshin.DataViewer.Views
                 else
                 {
                     Container.GoToElementState("SelectingMap", true);
-                    MapService.NPCMap = new Lazy<Dictionary<string, string>>(() => {
+                    MapService.NPCMap = new Lazy<Dictionary<string, string>>(() =>
+                    {
                         string jsonData = ExcelSplitView.ExcelConfigDataCollection?.First(f => f.FileName == "Npc").Read() ?? "";
                         JArray? jArray = Json.ToObject<JArray>(jsonData);
                         return jArray is null
@@ -109,7 +109,7 @@ namespace DGP.Genshin.DataViewer.Views
         private void OnConfirmed(object sender, RoutedEventArgs e)
         {
             Visibility = Visibility.Collapsed;
-            if(ExcelSplitView is not null)
+            if (ExcelSplitView is not null)
             {
                 ExcelSplitView.IsPaneOpen = true;
             }
